@@ -10,23 +10,58 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'prodi', 'semester', 'whatsapp_number'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function userSkills()
+    {
+        return $this->hasMany(UserSkill::class);
+    }
+
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class, 'user_skills')->withPivot('type', 'proficiency_level')->withTimestamps();
+    }
+
+    public function offeredSkills()
+    {
+        return $this->belongsToMany(Skill::class, 'user_skills')->wherePivot('type', 'offer')->withPivot('proficiency_level')->withTimestamps();
+    }
+
+    public function soughtSkills()
+    {
+        return $this->belongsToMany(Skill::class, 'user_skills')->wherePivot('type', 'seek')->withPivot('proficiency_level')->withTimestamps();
+    }
+
+    public function sentSwaps()
+    {
+        return $this->hasMany(Swap::class, 'sender_id');
+    }
+
+    public function receivedSwaps()
+    {
+        return $this->hasMany(Swap::class, 'receiver_id');
+    }
+
+    public function reviewsGiven()
+    {
+        return $this->hasMany(Review::class, 'reviewer_id');
+    }
+
+    public function reviewsReceived()
+    {
+        return $this->hasMany(Review::class, 'reviewee_id');
     }
 }

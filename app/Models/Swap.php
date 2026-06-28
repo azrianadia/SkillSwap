@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Swap extends Model
+{
+    protected $fillable = ['sender_id', 'receiver_id', 'offered_skill_id', 'requested_skill_id', 'status', 'swapped_at'];
+
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    public function offeredSkill()
+    {
+        return $this->belongsTo(Skill::class, 'offered_skill_id');
+    }
+
+    public function requestedSkill()
+    {
+        return $this->belongsTo(Skill::class, 'requested_skill_id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+}

@@ -1,4 +1,4 @@
-Saya sedang membangun aplikasi web 'SkillSwap' menggunakan Laravel 11. Aplikasi ini adalah platform pertukaran keahlian antar mahasiswa.
+Saya sedang membangun aplikasi web 'SkillSwap' menggunakan Laravel 13. Aplikasi ini adalah platform pertukaran keahlian antar mahasiswa.
 
 Tolong bantu saya membuat tabel database (Migrations) untuk aplikasi ini. Saya butuh struktur tabel berikut dengan relasi yang benar:
 
@@ -14,4 +14,3 @@ Reviews: (id, swap_id, rating, comment)
 
 Sebelum membuat file kodenya, tolong jelaskan dulu apakah rancangan relasi tabel ini sudah efisien untuk sistem 'matching' keahlian? Setelah saya setujui, tolong buatkan perintah php artisan make:migration untuk setiap tabel tersebut.
 
-opencode -s ses_0fbf1bc18ffeYTB8ZT6BwInZ1F

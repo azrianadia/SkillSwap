@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('prodi')->nullable();
+            $table->unsignedTinyInteger('semester')->nullable();
+            $table->string('whatsapp_number')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
