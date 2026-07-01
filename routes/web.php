@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/swaps', [SwapController::class, 'store'])->name('swaps.store');
     Route::post('/swaps/{id}/accept', [SwapController::class, 'accept'])->name('swaps.accept');
     Route::post('/swaps/{id}/reject', [SwapController::class, 'reject'])->name('swaps.reject');
+    Route::post('/swaps/{id}/complete', [SwapController::class, 'complete'])->name('swaps.complete');
     
     // Review routes
     Route::get('/swaps/{swapId}/review', [ReviewController::class, 'create'])->name('reviews.create');

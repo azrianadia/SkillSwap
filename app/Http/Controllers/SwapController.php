@@ -98,4 +98,26 @@ class SwapController extends Controller
 
         return back()->with('success', 'Swap request ditolak!');
     }
+
+    public function complete($id)
+    {
+        $swap = Swap::where('id', $id)
+            ->where(function ($query) {
+                $query->where('sender_id', Auth::id())
+                    ->orWhere('receiver_id', Auth::id());
+            })
+            ->where('status', 'accepted')
+            ->firstOrFail();
+
+        $swap->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        // Notify the other party
+        $otherUser = $swap->sender_id === Auth::id() ? $swap->receiver : $swap->sender;
+        $otherUser->notify(new \App\Notifications\SwapCompletedNotification($swap));
+
+        return back()->with('success', 'Swap ditandai selesai! Sekarang Anda bisa memberikan review.');
+    }
 }

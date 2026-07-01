@@ -38,6 +38,8 @@
                                             bg-yellow-100 text-yellow-800
                                         @elseif ($swap->status === 'accepted')
                                             bg-green-100 text-green-800
+                                        @elseif ($swap->status === 'completed')
+                                            bg-emerald-100 text-emerald-800
                                         @elseif ($swap->status === 'rejected')
                                             bg-red-100 text-red-800
                                         @endif
@@ -65,6 +67,15 @@
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800">Beri Review</a>
                                         @endif
+                                        <form method="POST" action="{{ route('swaps.complete', $swap->id) }}" class="inline ml-2">
+                                            @csrf
+                                            <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-800" onclick="return confirm('Yakin ingin menandai swap ini selesai?')">Selesai</button>
+                                        </form>
+                                    @elseif ($swap->status === 'completed')
+                                        <span class="text-xs text-emerald-600">✓ Selesai</span>
+                                        @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
+                                            <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800 ml-2">Beri Review</a>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -90,6 +101,8 @@
                                             bg-yellow-100 text-yellow-800
                                         @elseif ($swap->status === 'accepted')
                                             bg-green-100 text-green-800
+                                        @elseif ($swap->status === 'completed')
+                                            bg-emerald-100 text-emerald-800
                                         @elseif ($swap->status === 'rejected')
                                             bg-red-100 text-red-800
                                         @endif
@@ -121,7 +134,15 @@
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800">Beri Review</a>
                                         @endif
-                                    @endif
+                                        <form method="POST" action="{{ route('swaps.complete', $swap->id) }}" class="inline ml-2">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">Selesai</button>
+                                        </form>
+                                    @elseif ($swap->status === 'completed')
+                                        <span class="text-xs text-emerald-600">✓ Selesai</span>
+                                        @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
+                                            <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800 ml-2">Beri Review</a>
+                                        @endif
                                 </div>
                             </div>
                         @endforeach

@@ -15,7 +15,7 @@ class ReviewController extends Controller
     {
         $swap = Swap::with(['sender', 'receiver', 'offeredSkill', 'requestedSkill'])
             ->where('id', $swapId)
-            ->where('status', 'accepted')
+            ->whereIn('status', ['accepted', 'completed'])
             ->where(function ($query) {
                 $query->where('sender_id', Auth::id())
                     ->orWhere('receiver_id', Auth::id());
@@ -51,7 +51,7 @@ class ReviewController extends Controller
         ]);
 
         $swap = Swap::where('id', $request->swap_id)
-            ->where('status', 'accepted')
+            ->whereIn('status', ['accepted', 'completed'])
             ->where(function ($query) {
                 $query->where('sender_id', Auth::id())
                     ->orWhere('receiver_id', Auth::id());
