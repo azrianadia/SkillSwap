@@ -108,10 +108,25 @@
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Kontak</h3>
                         @if ($user->whatsapp_number)
-                            <div class="mb-2">
-                                <span class="text-gray-600 text-sm">WhatsApp:</span>
-                                <p class="text-gray-900 font-medium">{{ $user->whatsapp_number }}</p>
-                            </div>
+                            @if ($existingSwap)
+                                <div class="mb-2">
+                                    <span class="text-gray-600 text-sm">WhatsApp:</span>
+                                    <p class="text-gray-900 font-medium">{{ $user->whatsapp_number }}</p>
+                                </div>
+                                <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Nomor WhatsApp terlihat karena swap sudah <strong>diterima/selesai</strong>.
+                                </div>
+                            @else
+                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    Nomor WhatsApp tersembunyi. <strong>Ajukan swap</strong> dan tunggu diterima untuk melihat nomor kontak.
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -185,8 +200,51 @@
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-gray-200">
-                    <a href="{{ route('swaps.create', $user->id) }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition duration-200 text-center">
-                        Ajukan Swap
+                    @if (auth()->id() == $user->id)
+                        <p class="text-center text-gray-500">Ini profil Anda</p>
+                    @elseif ($pendingSwap)
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p class="text-amber-800 font-medium text-center">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Permintaan swap sedang <strong>menunggu konfirmasi</strong>.
+                            </p>
+                        </div>
+                    @elseif ($existingSwap)
+                        <div class="flex space-x-3">
+                            @if ($existingSwap->status === 'completed')
+                                <a href="{{ route('chat.show', $existingSwap->id) }}" 
+                                   class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition duration-200 text-center flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h4m4 0h4m-8 4h4m-4 0h4m-4-8h4m-4 0h4m0-4h4m-4 0h4"></path>
+                                    </svg>
+                                    Chat
+                                </a>
+                                @if (!$existingSwap->reviews->where('reviewer_id', auth()->id())->count())
+                                    <a href="{{ route('reviews.create', $existingSwap->id) }}" 
+                                       class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition duration-200 text-center">
+                                        Beri Review
+                                    </a>
+                                @endif
+                            @elseif ($existingSwap->status === 'accepted')
+                                <a href="{{ route('chat.show', $existingSwap->id) }}" 
+                                   class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition duration-200 text-center flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h4m4 0h4m-8 4h4m-4 0h4m-4-8h4m-4 0h4m0-4h4m-4 0h4"></path>
+                                    </svg>
+                                    Chat
+                                </a>
+                            @endif
+                        </div>
+                    @else
+                        <a href="{{ route('swaps.create', $user->id) }}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition duration-200 text-center">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h4m4 0h4m-8 4h4m-4 0h4m-4-8h4m-4 0h4m0-4h4m-4 0h4"></path>
+                            </svg>
+                            Ajukan Swap
+                        </a>
+                    @endif
                     </a>
                 </div>
             </div>

@@ -81,4 +81,19 @@ class User extends Authenticatable
         return $this->sentSwaps()->where('status', 'accepted')->count() + 
                $this->receivedSwaps()->where('status', 'accepted')->count();
     }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    public function unreadMessagesCount()
+    {
+        return $this->receivedMessages()->unread()->count();
+    }
 }

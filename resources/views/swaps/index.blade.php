@@ -71,11 +71,13 @@
                                             @csrf
                                             <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-800" onclick="return confirm('Yakin ingin menandai swap ini selesai?')">Selesai</button>
                                         </form>
+                                        <a href="{{ route('chat.show', $swap->id) }}" class="text-xs text-indigo-600 hover:text-indigo-800 ml-2">Chat</a>
                                     @elseif ($swap->status === 'completed')
                                         <span class="text-xs text-emerald-600">✓ Selesai</span>
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800 ml-2">Beri Review</a>
                                         @endif
+                                        <a href="{{ route('chat.show', $swap->id) }}" class="text-xs text-indigo-600 hover:text-indigo-800 ml-2">Chat</a>
                                     @endif
                                 </div>
                             </div>
@@ -143,6 +145,7 @@
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800 ml-2">Beri Review</a>
                                         @endif
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
