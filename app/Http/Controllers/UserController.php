@@ -14,23 +14,24 @@ class UserController extends Controller
         $user = User::with(['offeredSkills', 'soughtSkills', 'reviewsReceived'])->findOrFail($id);
         $unreadNotifications = auth()->user()->unreadNotifications->count();
         
-        // Check if there's an accepted/completed swap between current user and profile user
-        $existingSwap = Swap::where(function ($query) use ($id) {
+        // Get the most recent swap between current user and profile user
+        $latestSwap = Swap::where(function ($query) use ($id) {
             $query->where('sender_id', Auth::id())
                   ->where('receiver_id', $id);
         })->orWhere(function ($query) use ($id) {
             $query->where('sender_id', $id)
                   ->where('receiver_id', Auth::id());
-        })->whereIn('status', ['accepted', 'completed'])->first();
+        })->latest('created_at')->first();
         
-        // Check if there's a pending swap
-        $pendingSwap = Swap::where(function ($query) use ($id) {
-            $query->where('sender_id', Auth::id())
-                  ->where('receiver_id', $id);
-        })->orWhere(function ($query) use ($id) {
-            $query->where('sender_id', $id)
-                  ->where('receiver_id', Auth::id());
-        })->where('status', 'pending')->first();
+        // Check if there's an accepted/completed swap
+        $existingSwap = $latestSwap && in_array($latestSwap->status, ['accepted', 'completed']) 
+            ? $latestSwap 
+            : null;
+        
+        // Check if there's a pending swap (only if no accepted/completed swap exists)
+        $pendingSwap = $latestSwap && $latestSwap->status === 'pending' 
+            ? $latestSwap 
+            : null;
 
         return view('users.show', compact('user', 'unreadNotifications', 'existingSwap', 'pendingSwap'));
     }

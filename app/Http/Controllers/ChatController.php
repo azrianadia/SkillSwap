@@ -94,4 +94,39 @@ class ChatController extends Controller
 
         return back();
     }
+
+    public function poll($swapId, Request $request)
+    {
+        $userId = Auth::id();
+        
+        // Verify user is part of this swap
+        $swap = Swap::where('id', $swapId)
+            ->where(function ($query) use ($userId) {
+                $query->where('sender_id', $userId)
+                      ->orWhere('receiver_id', $userId);
+            })
+            ->firstOrFail();
+
+        $afterId = $request->query('after', 0);
+        
+        $messages = Message::where('swap_id', $swapId)
+            ->where('id', '>', $afterId)
+            ->with('sender')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Mark new incoming messages as read
+        Message::where('swap_id', $swapId)
+            ->where('receiver_id', $userId)
+            ->where('id', '>', $afterId)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+
+        return response()->json([
+            'messages' => $messages->load('sender'),
+        ]);
+    }
 }

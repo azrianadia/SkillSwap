@@ -1,8 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-80-gray-800 leading-tight">
-            {{ $otherUser->name }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ $otherUser->name }}
+            </h2>
+            <x-back-button href="{{ route('chat.index') }}" label="Pesan" />
+        </div>
     </x-slot>
 
     <div class="py-8">
@@ -158,7 +161,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
 
-            const data = await response.json();
+            console.log('Response status:', response.status);
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+            
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('JSON parse error:', e, responseText);
+                throw new Error('Invalid JSON response');
+            }
+
+            console.log('Parsed data:', data);
 
             if (data.success) {
                 input.value = '';
@@ -168,10 +183,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Scroll to bottom
                 container.scrollTop = container.scrollHeight;
+            } else {
+                console.error('Server returned error:', data);
+                alert('Gagal mengirim pesan: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Gagal mengirim pesan');
+            alert('Gagal mengirim pesan: ' + error.message);
         } finally {
             sendBtn.disabled = false;
             sendBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>`;
@@ -207,6 +225,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto scroll to bottom on load
     container.scrollTop = container.scrollHeight;
     
+    // ===== POLLING FOR NEW MESSAGES =====
+    let lastMessageId = {{ $messages->last()->id ?? 0 }};
+    let isPolling = true;
+    
+    function pollMessages() {
+        if (!isPolling) return;
+        
+        fetch(`{{ route('chat.poll', $swap->id) }}?after=${lastMessageId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    const isOwn = msg.sender_id === {{ auth()->id() }};
+                    appendMessage(msg, isOwn);
+                    lastMessageId = msg.id;
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+        })
+        .catch(err => console.error('Polling error:', err))
+        .finally(() => {
+            if (isPolling) {
+                setTimeout(pollMessages, 3000); // Poll every 3 seconds
+            }
+        });
+    }
+    
+    // Start polling
+    pollMessages();
+    
+    // Stop polling when page unloads
+    window.addEventListener('beforeunload', () => {
+        isPolling = false;
+    });
+
     // Enter to send, Shift+Enter for new line
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {

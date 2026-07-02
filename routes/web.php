@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/{swapId}', [ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+    Route::get('/chat/{swapId}/poll', [ChatController::class, 'poll'])->name('chat.poll');
 });
 
 require __DIR__.'/auth.php';

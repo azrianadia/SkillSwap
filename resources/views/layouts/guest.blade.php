@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'SkillSwap') }}</title>
+        <title>{{ config('app.name', 'KolaboKampus') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -19,9 +19,9 @@
             <div class="mb-8">
                 <div class="flex flex-col items-center">
                     <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform duration-200">
-                        <span class="text-3xl font-bold text-white">SS</span>
+                        <span class="text-3xl font-bold text-white">KK</span>
                     </div>
-                    <h1 class="mt-4 text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">SkillSwap</h1>
+                    <h1 class="mt-4 text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">KolaboKampus</h1>
                     <p class="text-sm text-gray-600 mt-1">Platform Pertukaran Keahlian Mahasiswa</p>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                 {{ $slot }}
             </div>
             
-            <p class="mt-6 text-xs text-gray-500">&copy; {{ date('Y') }} SkillSwap. All rights reserved.</p>
+            <p class="mt-6 text-xs text-gray-500">&copy; {{ date('Y') }} KolaboKampus. All rights reserved.</p>
         </div>
     </body>
 </html>

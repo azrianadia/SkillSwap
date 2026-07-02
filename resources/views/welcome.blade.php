@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SkillSwap - Platform Pertukaran Keahlian Mahasiswa</title>
+    <title>KolaboKampus - Platform Kolaborasi Mahasiswa</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen">
@@ -13,9 +13,9 @@
             <nav class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center">
-                        <span class="text-2xl font-bold text-white">SS</span>
+                        <span class="text-2xl font-bold text-white">KK</span>
                     </div>
-                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">SkillSwap</span>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">KolaboKampus</span>
                 </div>
                 
                 @if (Route::has('login'))
@@ -143,7 +143,7 @@
         <!-- Footer -->
         <footer class="container mx-auto px-6 py-8">
             <div class="text-center text-gray-600 text-sm">
-                <p>&copy; {{ date('Y') }} SkillSwap. Platform Pertukaran Keahlian Mahasiswa.</p>
+                <p>&copy; {{ date('Y') }} KolaboKampus. Platform Kolaborasi Mahasiswa.</p>
             </div>
         </footer>
     </div>
