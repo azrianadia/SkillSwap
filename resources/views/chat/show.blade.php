@@ -75,7 +75,7 @@
                     </div>
 
                     <!-- Messages -->
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messagesContainer">
+                    <div class="flex-1 overflow-y-auto p-4 space-y-6" id="messagesContainer">
                         @foreach ($messages as $message)
                             @php
                                 $isOwn = $message->sender_id === auth()->id();
@@ -85,11 +85,11 @@
                                     @if (!$isOwn)
                                         <p class="text-xs text-gray-500 mb-1 ml-1">{{ $message->sender->name }}</p>
                                     @endif
-                                    <div class="relative {{ $isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm' }}">
+                                    <div class="relative {{ $isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm' }} pr-8">
                                         <p class="py-2 px-4">{{ $message->content }}</p>
-                                        <span class="absolute bottom-1 {{ $isOwn ? 'right-2' : 'left-2' }} text-[10px] {{ $isOwn ? 'text-indigo-100' : 'text-gray-400' }}">
-                                            {{ $message->created_at->format('H:i') }}
-                                        </span>
+                <span class="absolute bottom-2 {{ $isOwn ? 'right-2' : 'left-2' }} text-[10px] {{ $isOwn ? 'text-gray-400' : 'text-gray-400' }}">
+                    {{ $message->created_at->format('H:i') }}
+                </span>
                                     </div>
                                 </div>
                             </div>
@@ -214,9 +214,9 @@ function appendMessage(message, isOwn) {
     div.innerHTML = `
         <div class="flex ${isOwn ? 'flex-col items-end' : 'flex-col items-start'} max-w-xs lg:max-w-md">
             ${!isOwn ? `<p class="text-xs text-gray-500 mb-1 ml-1">${message.sender.name}</p>` : ''}
-            <div class="relative ${isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm'}">
+            <div class="relative ${isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm'} pr-8">
                 <p class="py-2 px-4">${escapeHtml(message.content)}</p>
-                <span class="absolute bottom-1 ${isOwn ? 'right-2' : 'left-2'} text-[10px] ${isOwn ? 'text-indigo-100' : 'text-gray-400'}">${time}</span>
+                <span class="absolute bottom-2 ${isOwn ? 'right-2' : 'left-2'} text-[10px] ${isOwn ? 'text-indigo-100' : 'text-gray-400'}">${time}</span>
             </div>
         </div>
     `;
