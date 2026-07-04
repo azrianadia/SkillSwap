@@ -90,13 +90,18 @@ class SwapController extends Controller
     public function reject($id)
     {
         $swap = Swap::where('id', $id)
-            ->where('receiver_id', Auth::id())
+            ->where(function ($query) {
+                $query->where('sender_id', Auth::id())
+                      ->orWhere('receiver_id', Auth::id());
+            })
             ->where('status', 'pending')
             ->firstOrFail();
 
+        $isSender = $swap->sender_id === Auth::id();
         $swap->update(['status' => 'rejected']);
 
-        return back()->with('success', 'Swap request ditolak!');
+        $message = $isSender ? 'Swap request berhasil dibatalkan!' : 'Swap request ditolak!';
+        return back()->with('success', $message);
     }
 
     public function complete($id)

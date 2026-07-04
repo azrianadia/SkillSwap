@@ -85,14 +85,11 @@ class ChatController extends Controller
         // Trigger update on swap for ordering in index
         $swap->touch();
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message->load('sender'),
-            ]);
-        }
-
-        return back();
+        // Always return JSON (works for AJAX and non‑AJAX)
+        return response()->json([
+            'success' => true,
+            'message' => $message->load('sender'),
+        ]);
     }
 
     public function poll($swapId, Request $request)

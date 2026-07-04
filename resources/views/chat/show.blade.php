@@ -111,30 +111,32 @@
                             @csrf
                             <input type="hidden" name="swap_id" value="{{ $swap->id }}">
                             <div class="flex-1 relative">
-                                <input type="text" 
-                                       name="content" 
+                                <input type="text"
+                                       name="content"
                                        id="messageInput"
-                                       placeholder="Ketik pesan..." 
+                                       placeholder="Ketik pesan..."
                                        class="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pr-12"
                                        autocomplete="off">
                             </div>
-                            <button type="submit" 
+                            <button type="submit"
                                     class="p-3 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50"
                                     id="sendBtn">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                 </svg>
                             </button>
                         </form>
                     </div>
+
+
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
 
 @push('scripts')
 <script>
+console.log('Chat script loaded');
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('messageForm');
     const input = document.getElementById('messageInput');
@@ -143,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Form submitted');
         
         const content = input.value.trim();
         if (!content) return;
@@ -152,11 +155,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const formData = new FormData(form);
+            // Add _token to FormData explicitly
+            formData.append('_token', document.querySelector('input[name="_token"]').value);
+            
+            console.log('Sending message:', content);
             const response = await fetch('{{ route("chat.store") }}', {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
                     'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                 },
                 body: formData
             });
@@ -170,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data = JSON.parse(responseText);
             } catch (e) {
                 console.error('JSON parse error:', e, responseText);
-                throw new Error('Invalid JSON response');
+                throw new Error('Invalid JSON response: ' + responseText.substring(0, 200));
             }
 
             console.log('Parsed data:', data);
@@ -180,6 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Append message to container
                 appendMessage(data.message, true);
+                // Update lastMessageId to avoid duplicate from polling
+                lastMessageId = data.message.id;
                 
                 // Scroll to bottom
                 container.scrollTop = container.scrollHeight;
@@ -196,25 +205,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function appendMessage(message, isOwn) {
-        const div = document.createElement('div');
-        div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
-        
-        const time = new Date(message.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        
-        div.innerHTML = `
-            <div class="flex ${isOwn ? 'flex-col items-end' : 'flex-col items-start'} max-w-xs lg:max-w-md">
-                ${!isOwn ? `<p class="text-xs text-gray-500 mb-1 ml-1">${message.sender.name}</p>` : ''}
-                <div class="relative ${isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm'}">
-                    <p class="py-2 px-4">${escapeHtml(message.content)}</p>
-                    <span class="absolute bottom-1 ${isOwn ? 'right-2' : 'left-2'} text-[10px] ${isOwn ? 'text-indigo-100' : 'text-gray-400'}">${time}</span>
-                </div>
+function appendMessage(message, isOwn) {
+    const div = document.createElement('div');
+    div.className = `flex ${isOwn ? 'justify-end' : 'justify-start'}`;
+    
+    const time = new Date(message.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    
+    div.innerHTML = `
+        <div class="flex ${isOwn ? 'flex-col items-end' : 'flex-col items-start'} max-w-xs lg:max-w-md">
+            ${!isOwn ? `<p class="text-xs text-gray-500 mb-1 ml-1">${message.sender.name}</p>` : ''}
+            <div class="relative ${isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm'}">
+                <p class="py-2 px-4">${escapeHtml(message.content)}</p>
+                <span class="absolute bottom-1 ${isOwn ? 'right-2' : 'left-2'} text-[10px] ${isOwn ? 'text-indigo-100' : 'text-gray-400'}">${time}</span>
             </div>
-        `;
-        
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
+        </div>
+    `;
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
 
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -241,7 +250,9 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (data.messages && data.messages.length > 0) {
-                data.messages.forEach(msg => {
+                // Only process messages newer than lastMessageId to avoid duplicates
+                const newMsgs = data.messages.filter(msg => msg.id > lastMessageId);
+                newMsgs.forEach(msg => {
                     const isOwn = msg.sender_id === {{ auth()->id() }};
                     appendMessage(msg, isOwn);
                     lastMessageId = msg.id;
@@ -275,3 +286,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
+</x-app-layout>
