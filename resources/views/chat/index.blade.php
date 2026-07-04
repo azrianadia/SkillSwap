@@ -27,7 +27,7 @@
                         @foreach ($swaps as $swap)
                             @php
                                 $otherUser = $swap->sender_id === auth()->id() ? $swap->receiver : $swap->sender;
-                                $lastMessage = $swap->messages()->latest()->first();
+						$lastMessage = $swap->messages->first();
                                 $unreadCount = $swap->messages()
                                     ->where('receiver_id', auth()->id())
                                     ->where('is_read', false)

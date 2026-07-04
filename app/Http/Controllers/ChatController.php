@@ -15,14 +15,19 @@ class ChatController extends Controller
         
         // Get all swaps that the user is involved in (sender or receiver)
         // and have at least one message or are accepted
-        $swaps = Swap::with(['sender', 'receiver', 'offeredSkill', 'requestedSkill'])
+        $swaps = Swap::with(['sender', 'receiver', 'offeredSkill', 'requestedSkill', 'messages' => function($q) {
+                $q->orderBy('created_at', 'desc');
+            }])
             ->where(function ($query) use ($userId) {
                 $query->where('sender_id', $userId)
                       ->orWhere('receiver_id', $userId);
             })
             ->whereIn('status', ['accepted', 'completed'])
-            ->latest('updated_at')
-            ->get();
+            ->get()
+            ->sortByDesc(function($swap) {
+                return optional($swap->messages->first())->created_at ?? $swap->updated_at;
+            })
+            ->values();
             
         return view('chat.index', compact('swaps'));
     }

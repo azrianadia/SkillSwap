@@ -16,6 +16,12 @@
                 <nav class="flex items-center space-x-4">
                     <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-gray-900 font-medium">Dashboard</a>
                     <a href="{{ route('swaps.index') }}" class="text-gray-700 hover:text-gray-900">My Swaps</a>
+                    <a href="{{ route('chat.index') }}" class="flex items-center space-x-1 text-gray-700 hover:text-gray-900">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h4m4 0h4m-8 4h4m-4 0h4m-4-8h4m-4 0h4m0-4h4m-4 0h4" />
+                        </svg>
+                        <span>Pesan</span>
+                    </a>
                     
                     <!-- Notification Bell -->
                     <a href="{{ route('notifications.index') }}" class="relative text-gray-700 hover:text-gray-900">
