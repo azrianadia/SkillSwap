@@ -227,7 +227,7 @@
                                         Beri Review
                                     </a>
                                 @endif
-                            @elseif ($existingSwap->status === 'accepted')
+                            @elseif (in_array($existingSwap->status, ['accepted', 'pending']))
                                 <a href="{{ route('chat.show', $existingSwap->id) }}" 
                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition duration-200 text-center flex items-center justify-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

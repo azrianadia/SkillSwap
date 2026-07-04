@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Skill;
 use App\Notifications\SwapRequestNotification;
 use App\Notifications\SwapAcceptedNotification;
+use App\Notifications\SwapCompletedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -121,7 +122,7 @@ class SwapController extends Controller
 
         // Notify the other party
         $otherUser = $swap->sender_id === Auth::id() ? $swap->receiver : $swap->sender;
-        $otherUser->notify(new \App\Notifications\SwapCompletedNotification($swap));
+        $otherUser->notify(new SwapCompletedNotification($swap));
 
         return back()->with('success', 'Swap ditandai selesai! Sekarang Anda bisa memberikan review.');
     }

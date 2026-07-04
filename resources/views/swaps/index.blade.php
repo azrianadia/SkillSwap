@@ -66,6 +66,7 @@
                                             @csrf
                                             <button type="submit" class="text-xs text-red-600 hover:text-red-800" onclick="return confirm('Yakin ingin membatalkan request ini?')">Batalkan</button>
                                         </form>
+                                        <a href="{{ route('chat.show', $swap->id) }}" class="text-xs text-indigo-600 hover:text-indigo-800 ml-2">Chat</a>
                                     @elseif ($swap->status === 'accepted')
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800">Beri Review</a>
@@ -135,6 +136,7 @@
                                             @csrf
                                             <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Tolak</button>
                                         </form>
+                                        <a href="{{ route('chat.show', $swap->id) }}" class="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700">Chat</a>
                                     @elseif ($swap->status === 'accepted')
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800">Beri Review</a>
@@ -143,11 +145,13 @@
                                             @csrf
                                             <button type="submit" class="px-3 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700">Selesai</button>
                                         </form>
+                                        <a href="{{ route('chat.show', $swap->id) }}" class="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 ml-2">Chat</a>
                                     @elseif ($swap->status === 'completed')
                                         <span class="text-xs text-emerald-600">✓ Selesai</span>
                                         @if (! $swap->reviews->where('reviewer_id', Auth::id())->count())
                                             <a href="{{ route('reviews.create', $swap->id) }}" class="text-xs text-blue-600 hover:text-blue-800 ml-2">Beri Review</a>
                                         @endif
+                                        <a href="{{ route('chat.show', $swap->id) }}" class="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 ml-2">Chat</a>
                                     @endif
                                 </div>
                             </div>

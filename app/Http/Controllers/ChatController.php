@@ -14,7 +14,7 @@ class ChatController extends Controller
         $userId = Auth::id();
         
         // Get all swaps that the user is involved in (sender or receiver)
-        // and have at least one message or are accepted
+        // Allow chat for: accepted, completed, OR pending (so users can discuss before accepting)
         $swaps = Swap::with(['sender', 'receiver', 'offeredSkill', 'requestedSkill', 'messages' => function($q) {
                 $q->orderBy('created_at', 'desc');
             }])
@@ -22,7 +22,7 @@ class ChatController extends Controller
                 $query->where('sender_id', $userId)
                       ->orWhere('receiver_id', $userId);
             })
-            ->whereIn('status', ['accepted', 'completed'])
+            ->whereIn('status', ['pending', 'accepted', 'completed'])
             ->get()
             ->sortByDesc(function($swap) {
                 return optional($swap->messages->first())->created_at ?? $swap->updated_at;
@@ -42,6 +42,11 @@ class ChatController extends Controller
                       ->orWhere('receiver_id', $userId);
             })
             ->firstOrFail();
+
+        // Allow chat for pending, accepted, completed
+        if (!in_array($swap->status, ['pending', 'accepted', 'completed'])) {
+            abort(403, 'Chat hanya tersedia untuk swap yang pending, diterima, atau selesai.');
+        }
 
         $messages = Message::where('swap_id', $swapId)
             ->with('sender')
