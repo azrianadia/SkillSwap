@@ -35,7 +35,7 @@
                         @foreach ($sentSwaps as $swap)
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-medium text-gray-900">{{ $swap->receiver->name }}</h4>
+                                    <h4 class="font-medium text-gray-900"><a href="{{ route('users.show', $swap->receiver->id) }}" class="text-blue-600 hover:underline">{{ $swap->receiver->name }}</a></h4>
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                         @if ($swap->status === 'pending')
                                             bg-yellow-100 text-yellow-800
@@ -100,7 +100,7 @@
                         @foreach ($receivedSwaps as $swap)
                             <div class="border border-gray-200 rounded-lg p-4">
                                 <div class="flex items-center justify-between mb-2">
-                                    <h4 class="font-medium text-gray-900">{{ $swap->sender->name }}</h4>
+                                    <h4 class="font-medium text-gray-900"><a href="{{ route('users.show', $swap->sender->id) }}" class="text-blue-600 hover:underline">{{ $swap->sender->name }}</a></h4>
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                         @if ($swap->status === 'pending')
                                             bg-yellow-100 text-yellow-800
