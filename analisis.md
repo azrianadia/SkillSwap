@@ -19,8 +19,8 @@ Form Ajukan Swap: (Bisa berupa modal atau page terpisah) tempat user memilih ski
 4. Halaman Pendukung
 Halaman Notifikasi/Pesan: Opsional, tapi akan sangat keren kalau ada.
 
-opencode -s ses_0f2175375ffewNA4YhsaAazebY
+php artisan serve --host=0.0.0.0 --port=8000
 
 opencode -s ses_0f2175375ffewNA4YhsaAazebY
 
-opencode -s ses_0f2175375ffewNA4YhsaAazebY
+opencode -s ses_0d54b98f1ffemW64n1NMrsE9QB

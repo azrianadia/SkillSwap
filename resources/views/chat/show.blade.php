@@ -1,25 +1,92 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $otherUser->name }}
-            </h2>
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    {{ strtoupper(substr($otherUser->name, 0, 2)) }}
+                </div>
+                <div>
+                    <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $otherUser->name }}</h2>
+                    <p class="text-xs text-gray-500">{{ $swap->offeredSkill->skill_name }} ↔ {{ $swap->requestedSkill->skill_name }}</p>
+                </div>
+            </div>
             <x-back-button href="{{ route('chat.index') }}" label="Pesan" />
         </div>
     </x-slot>
 
-    <div class="py-8">
+<div class="py-8">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm rounded-xl overflow-hidden flex h-[calc(100vh-200px)] min-h-[500px]">
-                <!-- Sidebar - Swap Info (Mobile: Bottom Sheet) -->
-                <div class="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-100">
-                    <div class="p-4 border-b border-gray-100">
-                        <h3 class="font-semibold text-gray-900">Detail Swap</h3>
+                
+                @if (in_array($swap->status, ['accepted', 'completed']))
+                    <!-- Sidebar - Only for accepted/completed -->
+                    <div class="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-100 bg-gray-50">
+                        <div class="p-4 border-b border-gray-100">
+                            <h3 class="font-semibold text-gray-900">Detail Swap</h3>
+                        </div>
+                        <div class="p-4 space-y-4 overflow-y-auto flex-1">
+                            <div class="bg-gray-100 rounded-lg p-3">
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Status</p>
+                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full
+                                    @if ($swap->status === 'accepted')
+                                        bg-green-100 text-green-800
+                                    @elseif ($swap->status === 'completed')
+                                        bg-emerald-100 text-emerald-800
+                                    @else
+                                        bg-yellow-100 text-yellow-800
+                                    @endif
+                                ">
+                                    {{ ucfirst($swap->status) }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Skill Ditawarkan</p>
+                                <span class="inline-block px-2 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                                    {{ $swap->offeredSkill->skill_name }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Skill Diminta</p>
+                                <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                                    {{ $swap->requestedSkill->skill_name }}
+                                </span>
+                            </div>
+
+                            @if ($swap->status === 'completed')
+                                <div class="pt-4 border-t border-gray-100">
+                                    <a href="{{ route('reviews.create', $swap->id) }}" 
+                                       class="block w-full text-center py-2 px-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
+                                        Beri Review
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <div class="p-4 space-y-4 overflow-y-auto flex-1">
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Status</p>
-                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full
+                @endif
+
+                <!-- Chat Area -->
+                <div class="flex-1 flex flex-col {{ in_array($swap->status, ['accepted', 'completed']) ? '' : 'lg:flex-1' }}">
+                    <!-- Chat Header (Like WhatsApp) -->
+                    <div class="bg-white border-b border-gray-100 px-4 py-3 flex items-center space-x-3 sticky top-0 z-10">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                            {{ strtoupper(substr($otherUser->name, 0, 2)) }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 truncate">{{ $otherUser->name }}</h3>
+                            <div class="flex items-center space-x-2 mt-0.5">
+                                <span class="inline-flex items-center px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                                    {{ $swap->offeredSkill->skill_name }}
+                                </span>
+                                <span class="text-gray-400 text-xs">↔</span>
+                                <span class="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                                    {{ $swap->requestedSkill->skill_name }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full
                                 @if ($swap->status === 'accepted')
                                     bg-green-100 text-green-800
                                 @elseif ($swap->status === 'completed')
@@ -27,55 +94,16 @@
                                 @elseif ($swap->status === 'rejected')
                                     bg-red-100 text-red-800
                                 @else
-                                    bg-yellow-100 text-yellow-800
+                                    bg-yellow-100 text-yellow- text-yellow-800
                                 @endif
                             ">
                                 {{ ucfirst($swap->status) }}
                             </span>
                         </div>
-
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Skill Ditawarkan</p>
-                            <span class="inline-block px-2 py-1 bg-green-50 text-green-700 rounded-full text-sm">
-                                {{ $swap->offeredSkill->skill_name }}
-                            </span>
-                        </div>
-
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Skill Diminta</p>
-                            <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                                {{ $swap->requestedSkill->skill_name }}
-                            </span>
-                        </div>
-
-                        @if ($swap->status === 'completed')
-                            <div class="pt-4 border-t border-gray-100">
-                                <a href="{{ route('reviews.create', $swap->id) }}" 
-                                   class="block w-full text-center py-2 px-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm">
-                                    Beri Review
-                                </a>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Chat Area -->
-                <div class="flex-1 flex flex-col">
-                    <!-- Chat Header (Mobile) -->
-                    <div class="lg:hidden p-4 border-b border-gray-100 flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                {{ strtoupper(substr($otherUser->name, 0, 2)) }}
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">{{ $otherUser->name }}</h3>
-                                <p class="text-xs text-gray-500">{{ $swap->offeredSkill->skill_name }} ↔ {{ $swap->requestedSkill->skill_name }}</p>
-                            </div>
-                        </div>
                     </div>
 
                     @if ($swap->status === 'pending')
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mx-4 mb-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mx-4 mt-3 mb-2">
                             <p class="text-sm text-yellow-800 flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -84,8 +112,6 @@
                             </p>
                         </div>
                     @endif
-
-                    <!-- Messages -->
                     <div class="flex-1 overflow-y-auto p-4 space-y-6" id="messagesContainer">
                         @foreach ($messages as $message)
                             @php
@@ -96,11 +122,11 @@
                                     @if (!$isOwn)
                                         <p class="text-xs text-gray-500 mb-1 ml-1">{{ $message->sender->name }}</p>
                                     @endif
-                                    <div class="relative {{ $isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm' }} pr-8">
+                                    <div class="relative {{ $isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm' }} pr-10 pb-5">
                                         <p class="py-2 px-4">{{ $message->content }}</p>
-                <span class="absolute bottom-2 {{ $isOwn ? 'right-2' : 'left-2' }} text-[10px] {{ $isOwn ? 'text-gray-400' : 'text-gray-400' }}">
-                    {{ $message->created_at->format('H:i') }}
-                </span>
+                                        <span class="absolute bottom-1.5 {{ $isOwn ? 'right-2' : 'left-2' }} text-xs {{ $isOwn ? 'text-indigo-100' : 'text-gray-500' }}">
+                                            {{ $message->created_at->format('H:i') }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -225,9 +251,9 @@ function appendMessage(message, isOwn) {
     div.innerHTML = `
         <div class="flex ${isOwn ? 'flex-col items-end' : 'flex-col items-start'} max-w-xs lg:max-w-md">
             ${!isOwn ? `<p class="text-xs text-gray-500 mb-1 ml-1">${message.sender.name}</p>` : ''}
-            <div class="relative ${isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm'} pr-8">
+            <div class="relative ${isOwn ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm'} pr-10 pb-5">
                 <p class="py-2 px-4">${escapeHtml(message.content)}</p>
-                <span class="absolute bottom-2 ${isOwn ? 'right-2' : 'left-2'} text-[10px] ${isOwn ? 'text-indigo-100' : 'text-gray-400'}">${time}</span>
+                <span class="absolute bottom-1.5 ${isOwn ? 'right-2' : 'left-2'} text-xs ${isOwn ? 'text-indigo-100' : 'text-gray-500'}">${time}</span>
             </div>
         </div>
     `;
