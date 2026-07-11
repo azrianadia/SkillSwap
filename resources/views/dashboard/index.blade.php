@@ -104,9 +104,13 @@
                     <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 border-t-4 border-blue-500">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                    {{ strtoupper(substr($user->name, 0, 2)) }}
-                                </div>
+                                @if ($user->avatar)
+                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-12 h-12 rounded-full object-cover shadow-md" />
+                                @else
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                        {{ strtoupper(substr($user->name, 0, 2)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900">{{ $user->name }}</h3>
                                     @if($user->reviewsReceived->count() > 0)

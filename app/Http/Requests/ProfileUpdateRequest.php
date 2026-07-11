@@ -14,7 +14,7 @@ class ProfileUpdateRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -26,9 +26,8 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            'prodi' => ['nullable', 'string', 'max:255'],
-            'semester' => ['nullable', 'integer', 'min:1', 'max:14'],
-            'whatsapp_number' => ['nullable', 'string', 'max:20'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'delete_avatar' => ['nullable', 'boolean'],
         ];
     }
 }

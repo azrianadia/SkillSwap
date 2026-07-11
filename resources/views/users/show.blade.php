@@ -46,10 +46,14 @@
             <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-32"></div>
             
             <div class="px-6 pb-6">
-                <div class="flex flex-col items-center -mt-16 mb-6">
-                    <div class="w-32 h-32 rounded-full bg-white flex items-center justify-center text-4xl font-bold text-gray-700 shadow-lg">
-                        {{ strtoupper(substr($user->name, 0, 2)) }}
-                    </div>
+<div class="flex flex-col items-center -mt-16 mb-6">
+                    @if ($user->avatar)
+                        <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg" />
+                    @else
+                        <div class="w-32 h-32 rounded-full bg-white flex items-center justify-center text-4xl font-bold text-gray-700 shadow-lg border-4 border-white">
+                            {{ strtoupper(substr($user->name, 0, 2)) }}
+                        </div>
+                    @endif
                     <h2 class="mt-4 text-3xl font-bold text-gray-900">{{ $user->name }}</h2>
                     <p class="text-gray-600">{{ $user->email }}</p>
 
