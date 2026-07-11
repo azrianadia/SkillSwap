@@ -13,30 +13,21 @@
                 <div class="flex items-center">
                     <h1 class="text-xl font-bold text-gray-900">KolaboKampus</h1>
                 </div>
-                <nav class="flex items-center space-x-4">
-                    <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-gray-900 font-medium">Dashboard</a>
-                    <a href="{{ route('swaps.index') }}" class="text-gray-700 hover:text-gray-900">My Swaps</a>
-                    <a href="{{ route('chat.index') }}" class="flex items-center space-x-1 text-gray-700 hover:text-gray-900">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h4m4 0h4m-8 4h4m-4 0h4m-4-8h4m-4 0h4m0-4h4m-4 0h4" />
-                        </svg>
-                        <span>Pesan</span>
-                    </a>
+                <nav class="flex items-center space-x-1">
+                    <x-nav-item :href="route('dashboard')" icon="dashboard">Dashboard</x-nav-item>
+                    <x-nav-item :href="route('swaps.index')" icon="swap">My Swaps</x-nav-item>
+                    <x-nav-item :href="route('chat.index')" icon="chat">Pesan</x-nav-item>
+                    <x-nav-item :href="route('notifications.index')" icon="notifications" :badge="$unreadNotifications > 0 ? $unreadNotifications : null">Notifikasi</x-nav-item>
+                    <x-nav-item :href="route('profile.show')" icon="profile">Profil Saya</x-nav-item>
                     
-                    <!-- Notification Bell -->
-                    <a href="{{ route('notifications.index') }}" class="relative text-gray-700 hover:text-gray-900">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.001 6.001 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                        </svg>
-                        @if($unreadNotifications > 0)
-                            <span class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">{{ $unreadNotifications }}</span>
-                        @endif
-                    </a>
-                    
-                    <a href="{{ route('profile.show') }}" class="text-gray-700 hover:text-gray-900">Profil Saya</a>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="text-gray-700 hover:text-gray-900" onclick="return confirm('Yakin ingin keluar?')">Logout</button>
+                        <button type="submit" class="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-gray-700 hover:text-gray-900" onclick="return confirm('Yakin ingin keluar?')">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            <span>Logout</span>
+                        </button>
                     </form>
                 </nav>
             </div>

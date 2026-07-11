@@ -13,7 +13,7 @@
                 <div class="flex items-center">
                     <h1 class="text-xl font-bold text-gray-900">KolaboKampus</h1>
                 </div>
-                <nav class="flex items-center space-x-4">
+                <nav class="flex items-center space-x-1">
                     <x-back-button href="{{ route('dashboard') }}" label="Dashboard" class="mr-4" />
                     <a href="{{ route('swaps.index') }}" class="text-gray-700 hover:text-gray-900">My Swaps</a>
                     

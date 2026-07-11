@@ -24,3 +24,4 @@ php artisan serve --host=0.0.0.0 --port=8000
 opencode -s ses_0f2175375ffewNA4YhsaAazebY
 
 opencode -s ses_0d54b98f1ffemW64n1NMrsE9QB
+opencode -s ses_0d54b98f1ffemW64n1NMrsE9QB
