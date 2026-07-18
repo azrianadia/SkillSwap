@@ -11,7 +11,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-gray-900">KolaboKampus</h1>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">KolaboKampus</h1>
                 </div>
                 <nav class="flex items-center space-x-1">
                     <x-nav-item :href="route('dashboard')" icon="dashboard">Dashboard</x-nav-item>
