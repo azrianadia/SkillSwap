@@ -35,6 +35,37 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quota Widget -->
+        <div class="mb-6 p-4 bg-white rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Sisa Swap Bulan Ini</p>
+                        <p class="text-2xl font-bold text-gray-900">
+                            {{ auth()->user()->is_pro ? 'Unlimited' : auth()->user()->swap_quota . ' / 5' }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    @if (!auth()->user()->is_pro)
+                        <a href="{{ route('upgrade.show') }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition">
+                            Upgrade Pro
+                        </a>
+                    @else
+                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-sm font-medium">
+                            PRO
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <!-- End Quota Widget -->
+
         <div class="mb-6">
             <h2 class="text-2xl font-bold text-gray-900">Daftar User</h2>
             <p class="text-gray-600 mt-1">Temukan partner pertukaran keahlian</p>

@@ -40,6 +40,14 @@ class SwapController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+        
+        // CHECK QUOTA
+        if (!$user->hasSwapQuota()) {
+            return back()->with('error', 'Kuota swap bulanan Anda sudah habis. Upgrade ke Pro untuk swap unlimited.')
+                ->with('redirect_upgrade', true);
+        }
+
         $request->validate([
             'receiver_id' => ['required', 'exists:users,id'],
             'offered_skill_id' => ['required', 'exists:skills,id'],
@@ -64,6 +72,9 @@ class SwapController extends Controller
             'requested_skill_id' => $request->requested_skill_id,
             'status' => 'pending',
         ]);
+
+        // USE QUOTA
+        $user->useSwapQuota();
 
         $receiver = User::find($request->receiver_id);
         $receiver->notify(new SwapRequestNotification($swap));
@@ -100,6 +111,12 @@ class SwapController extends Controller
 
         $isSender = $swap->sender_id === Auth::id();
         $swap->update(['status' => 'rejected']);
+
+        // REFUND QUOTA IF RECEIVER REJECTS
+        if (!$isSender) {
+            $sender = $swap->sender;
+            $sender->refundSwapQuota();
+        }
 
         $message = $isSender ? 'Swap request berhasil dibatalkan!' : 'Swap request ditolak!';
         return back()->with('success', $message);

@@ -8,6 +8,7 @@ use App\Http\Controllers\SwapController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -49,6 +50,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/chat/{swapId}', [ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
     Route::get('/chat/{swapId}/poll', [ChatController::class, 'poll'])->name('chat.poll');
+
+    // Subscription routes
+    Route::get('/upgrade', [SubscriptionController::class, 'show'])->name('upgrade.show');
+    Route::post('/upgrade', [SubscriptionController::class, 'upgrade'])->name('upgrade.process');
+    Route::get('/upgrade/success', [SubscriptionController::class, 'success'])->name('upgrade.success');
+    
+    // Midtrans Webhooks
+    Route::post('/midtrans/callback', [SubscriptionController::class, 'callback'])->name('midtrans.callback');
+    Route::post('/midtrans/subscription', [SubscriptionController::class, 'subscriptionCallback'])->name('midtrans.subscription');
 });
 
 require __DIR__.'/auth.php';

@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Services\MidtransService;
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
+class SubscriptionController extends Controller
+{
+    protected $midtrans;
+
+    public function __construct(MidtransService $midtrans)
+    {
+        $this->midtrans = $midtrans;
+    }
+
+    public function show()
+    {
+        $user = Auth::user();
+        $quota = $user->getQuotaInfo();
+        
+        return view('subscription.upgrade', compact('quota'));
+    }
+
+    public function upgrade(Request $request)
+    {
+        $user = Auth::user();
+        
+        if ($user->is_pro) {
+            return back()->with('info', 'Anda sudah berlangganan Pro.');
+        }
+
+        try {
+            // Create subscription (recurring monthly)
+            $result = $this->midtrans->createSubscription($user);
+            
+            // Also create transaction record for tracking
+            $orderId = 'ORDER-' . $user->id . '-' . Str::upper(Str::random(8)) . '-' . time();
+            Transaction::create([
+                'user_id' => $user->id,
+                'order_id' => $orderId,
+                'midtrans_subscription_id' => $result['subscription_id'],
+                'amount' => config('subscription.plans.pro.price'),
+                'status' => 'pending',
+                'plan' => 'pro',
+                'expired_at' => now()->addHours(24),
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'snap_token' => $result['snap_token'],
+                    'redirect_url' => $result['redirect_url'],
+                ]);
+            }
+
+            return view('subscription.snap', [
+                'snapToken' => $result['snap_token'],
+                'redirectUrl' => $result['redirect_url'],
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Upgrade failed: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses upgrade. Silakan coba lagi.');
+        }
+    }
+
+    public function success(Request $request)
+    {
+        $orderId = $request->query('order_id');
+        $transaction = Transaction::where('order_id', $orderId)->first();
+        
+        return view('subscription.success', compact('transaction'));
+    }
+
+    public function callback(Request $request)
+    {
+        $payload = $request->all();
+        Log::info('Midtrans Callback', $payload);
+        
+        try {
+            $this->midtrans->handleNotification($payload);
+        } catch (\Exception $e) {
+            Log::error('Midtrans callback error: ' . $e->getMessage());
+        }
+        
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function subscriptionCallback(Request $request)
+    {
+        $payload = $request->all();
+        Log::info('Midtrans Subscription Callback', $payload);
+        
+        try {
+            $this->midtrans->handleSubscriptionNotification($payload);
+        } catch (\Exception $e) {
+            Log::error('Midtrans subscription callback error: ' . $e->getMessage());
+        }
+        
+        return response()->json(['status' => 'ok']);
+    }
+}
