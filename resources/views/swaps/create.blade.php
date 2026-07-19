@@ -98,10 +98,8 @@
                             Kirim Request
                         </button>
                     </div>
-                </form>
-</div>
+</form>
+            </div>
         </div>
     </div>
-</div>
-@endif
 </x-app-layout>
