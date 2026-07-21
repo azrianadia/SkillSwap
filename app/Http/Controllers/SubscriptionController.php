@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SubscriptionController extends Controller
@@ -135,31 +136,56 @@ class SubscriptionController extends Controller
     public function cancel(Request $request)
     {
         $user = $request->user();
-        
-        if (! $user->is_pro || ! $user->midtrans_subscription_id) {
-            return back()->with('error', 'Tidak ada langganan aktif untuk dibatalkan.');
+
+        if (! $user->is_pro) {
+            return back()->with('info', 'Anda tidak memiliki langganan aktif.');
         }
+
+        // Get subscription ID from user column or latest transaction
+        $subscriptionId = $user->midtrans_subscription_id;
         
-        try {
-            // Call Midtrans to cancel subscription
-            $this->midtrans->cancelSubscription($user->midtrans_subscription_id);
+        if (! $subscriptionId) {
+            $latestTransaction = $user->transactions()
+                ->where('plan', 'pro')
+                ->whereIn('status', ['settlement', 'capture', 'pending'])
+                ->latest('created_at')
+                ->first();
             
-            // Update user immediately (webhook will also handle this)
-            $user->update([
-                'is_pro' => false,
-                'plan' => 'free',
-                'swap_quota' => config('subscription.plans.free.swap_limit'),
-                'quota_reset_at' => now()->addMonth(),
-                'midtrans_subscription_id' => null,
-                'badge' => null,
-                'support_level' => 'normal',
-            ]);
-            
-            return back()->with('success', 'Langganan Pro telah dibatalkan. Anda akan tetap menikmati fitur Pro hingga akhir periode billing saat ini.');
-        } catch (\Exception $e) {
-            Log::error('Cancel subscription failed: ' . $e->getMessage());
-            return back()->with('error', 'Gagal membatalkan langganan. Silakan coba lagi atau hubungi support.');
+            $subscriptionId = $latestTransaction?->midtrans_subscription_id;
         }
+
+        // If it's a local order ID (starts with SUB-), just cancel locally
+        $isLocalOrder = $subscriptionId && str_starts_with($subscriptionId, 'SUB-');
+        
+        if ($subscriptionId && ! $isLocalOrder) {
+            try {
+                $this->midtrans->cancelSubscription($subscriptionId);
+            } catch (\Exception $e) {
+                Log::error('Midtrans cancel subscription failed: ' . $e->getMessage());
+                return back()->with('error', 'Gagal membatalkan langganan. Silakan coba lagi.');
+            }
+        }
+
+        // Cancel any pending local transactions
+        if ($isLocalOrder || $subscriptionId) {
+            $user->transactions()
+                ->where('plan', 'pro')
+                ->whereIn('status', ['pending'])
+                ->update(['status' => 'cancelled']);
+        }
+
+        // Downgrade user immediately
+        $user->update([
+            'is_pro' => false,
+            'plan' => 'free',
+            'swap_quota' => config('subscription.plans.free.swap_limit'),
+            'quota_reset_at' => now()->addMonth(),
+            'midtrans_subscription_id' => null,
+            'badge' => null,
+            'support_level' => 'normal',
+        ]);
+
+        return back()->with('success', 'Langganan Pro telah dibatalkan. Anda akan tetap memiliki akses Pro hingga akhir periode berlangganan.');
     }
 
     public function confirm()
