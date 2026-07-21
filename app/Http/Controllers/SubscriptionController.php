@@ -36,7 +36,7 @@ class SubscriptionController extends Controller
         }
 
         try {
-            // Create subscription (recurring monthly)
+            // Create subscription (using Snap API for payment)
             $result = $this->midtrans->createSubscription($user);
             
             // Also create transaction record for tracking
@@ -44,7 +44,7 @@ class SubscriptionController extends Controller
             Transaction::create([
                 'user_id' => $user->id,
                 'order_id' => $orderId,
-                'midtrans_subscription_id' => $result['subscription_id'],
+                'midtrans_subscription_id' => $result['order_id'],
                 'amount' => config('subscription.plans.pro.price'),
                 'status' => 'pending',
                 'plan' => 'pro',
@@ -75,6 +75,46 @@ class SubscriptionController extends Controller
         $transaction = Transaction::where('order_id', $orderId)->first();
         
         return view('subscription.success', compact('transaction'));
+    }
+
+    public function confirm()
+    {
+        $user = Auth::user();
+        $quota = $user->getQuotaInfo();
+        $price = config('subscription.plans.pro.price');
+        
+        return view('subscription.confirm', compact('user', 'quota', 'price'));
+    }
+
+    public function process(Request $request)
+    {
+        $user = Auth::user();
+        
+        if ($user->is_pro) {
+            return back()->with('info', 'Anda sudah berlangganan Pro.');
+        }
+
+        try {
+            $result = $this->midtrans->createSubscription($user);
+            
+            $orderId = 'ORDER-' . $user->id . '-' . Str::upper(Str::random(8)) . '-' . time();
+            Transaction::create([
+                'user_id' => $user->id,
+                'order_id' => $orderId,
+                'midtrans_subscription_id' => $result['order_id'],
+                'amount' => config('subscription.plans.pro.price'),
+                'status' => 'pending',
+                'plan' => 'pro',
+                'expired_at' => now()->addHours(24),
+            ]);
+
+            // Redirect directly to Midtrans payment page
+            return redirect($result['redirect_url']);
+            
+        } catch (\Exception $e) {
+            Log::error('Upgrade failed: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses upgrade. Silakan coba lagi.');
+        }
     }
 
     public function callback(Request $request)

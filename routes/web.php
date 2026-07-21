@@ -53,7 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Subscription routes
     Route::get('/upgrade', [SubscriptionController::class, 'show'])->name('upgrade.show');
-    Route::post('/upgrade', [SubscriptionController::class, 'upgrade'])->name('upgrade.process');
+    Route::get('/upgrade/confirm', [SubscriptionController::class, 'confirm'])->name('upgrade.confirm');
+    Route::post('/upgrade/process', [SubscriptionController::class, 'process'])->name('upgrade.process');
     Route::get('/upgrade/success', [SubscriptionController::class, 'success'])->name('upgrade.success');
     
     // Midtrans Webhooks

@@ -6,7 +6,7 @@ require_once base_path('vendor/midtrans/midtrans-php/Midtrans.php');
 
 use Midtrans\Config;
 use Midtrans\Snap;
-use Midtrans\Subscription;
+use Midtrans\CoreApi;
 use App\Models\User;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
@@ -75,46 +75,67 @@ class MidtransService
         ];
     }
 
-    public function createSubscription(User $user): array
+public function createSubscription(User $user): array
     {
-        if (!$user->midtrans_customer_id) {
-            $customer = Subscription::createCustomer([
-                'customer_details' => [
-                    'first_name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->whatsapp_number ?? '',
-                ],
-            ]);
-            $user->update(['midtrans_customer_id' => $customer->id]);
-        }
+        $price = config('subscription.plans.pro.price');
+        
+        // Generate a unique order ID for the subscription
+        $orderId = 'SUB-' . $user->id . '-' . Str::upper(Str::random(12)) . '-' . time();
+        
+        // Create a transaction record
+        $transaction = Transaction::create([
+            'user_id' => $user->id,
+            'order_id' => $orderId,
+            'amount' => $price,
+            'status' => 'pending',
+            'plan' => 'pro',
+            'expired_at' => now()->addHours(24),
+        ]);
 
-        $subscription = Subscription::create([
-            'customer_id' => $user->midtrans_customer_id,
-            'schedule' => [
-                'interval' => 1,
-                'interval_unit' => 'month',
-                'max_interval' => 0,
-                'start_time' => Carbon::now()->addMinutes(5)->format('Y-m-d H:i:s'),
+        // Use Snap API for subscription payment
+        // This creates a payment page that handles the subscription
+        $params = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => $price,
             ],
-            'pricing_model' => 'fixed',
-            'price' => config('subscription.plans.pro.price'),
-            'name' => 'KolaboKampus Pro Monthly',
-            'description' => 'Langganan bulanan Pro KolaboKampus',
+            'customer_details' => [
+                'first_name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->whatsapp_number ?? '',
+            ],
+            'item_details' => [[
+                'id' => 'pro_subscription',
+                'price' => $price,
+                'quantity' => 1,
+                'name' => 'KolaboKampus Pro Monthly',
+            ]],
+            'callbacks' => [
+                'finish' => route('upgrade.success'),
+                'error' => route('upgrade.show'),
+                'pending' => route('upgrade.show'),
+            ],
+            'expiry' => [
+                'start_time' => Carbon::now()->format('Y-m-d H:i:s T'),
+                'unit' => 'hours',
+                'duration' => 24,
+            ],
             'metadata' => [
                 'user_id' => $user->id,
                 'plan' => 'pro',
+                'is_subscription' => true,
             ],
-        ]);
+        ];
 
-        $user->update(['midtrans_subscription_id' => $subscription->id]);
+        $snapToken = Snap::getSnapToken($params);
 
         return [
-            'subscription_id' => $subscription->id,
-            'snap_token' => $subscription->snap_token ?? null,
-            'redirect_url' => $subscription->redirect_url ?? null,
+'snap_token' => $snapToken,
+            'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/' . $snapToken,
+            'order_id' => $orderId,
         ];
     }
-
+    
     public function handleNotification(array $payload): void
     {
         $signatureKey = config('services.midtrans.server_key');

@@ -61,12 +61,10 @@
                         <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{{ session('error') }}</div>
                     @endif
 
-                    <button id="upgrade-btn" 
-                            class="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50"
-                            wire:click="upgrade">
-                        <span id="btn-text">Aktifkan Pro - Rp 25.000/bulan</span>
-                        <span id="btn-loading" class="hidden">Memproses...</span>
-                    </button>
+                    <a href="{{ route('upgrade.confirm') }}" 
+                       class="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition text-center block">
+                        <span>Aktifkan Pro - Rp 25.000/bulan</span>
+                    </a>
 
                     <p class="mt-4 text-xs text-gray-500 text-center">
                         Pembayaran aman via Midtrans (QRIS, Transfer Bank, E-Wallet).
@@ -77,63 +75,3 @@
         </div>
     </div>
 </x-app-layout>
-
-@push('scripts')
-<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
-<script>
-    document.getElementById('upgrade-btn').addEventListener('click', function() {
-        const btn = this;
-        const btnText = document.getElementById('btn-text');
-        const btnLoading = document.getElementById('btn-loading');
-        
-        btn.disabled = true;
-        btnText.classList.add('hidden');
-        btnLoading.classList.remove('hidden');
-
-        fetch('{{ route('upgrade.process') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.snap_token) {
-                snap.pay(data.snap_token, {
-                    onSuccess: function(result) {
-                        window.location.href = '{{ route('upgrade.success') }}?order_id=' + result.order_id;
-                    },
-                    onPending: function(result) {
-                        window.location.href = '{{ route('upgrade.success') }}?order_id=' + result.order_id;
-                    },
-                    onError: function(result) {
-                        alert('Pembayaran gagal: ' + result.error_messages.join(', '));
-                        btn.disabled = false;
-                        btnText.classList.remove('hidden');
-                        btnLoading.classList.add('hidden');
-                    },
-                    onClose: function() {
-                        btn.disabled = false;
-                        btnText.classList.remove('hidden');
-                        btnLoading.classList.add('hidden');
-                    }
-                });
-            } else {
-                alert('Gagal memulai pembayaran');
-                btn.disabled = false;
-                btnText.classList.remove('hidden');
-                btnLoading.classList.add('hidden');
-            }
-        })
-        .catch(error => {
-            console.error(error);
-            alert('Terjadi kesalahan');
-            btn.disabled = false;
-            btnText.classList.remove('hidden');
-            btnLoading.classList.add('hidden');
-        });
-    });
-</script>
-@endpush

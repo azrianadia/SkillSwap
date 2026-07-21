@@ -1,11 +1,11 @@
 # Skema Database KolaboKampus (Updated)
 
-*Last Updated: 2026-07-04*
+*Last Updated: 2026-07-19*
 
 ---
 
 ## Overview
-Database untuk platform marketplace pertukaran skill antar mahasiswa.
+Database untuk platform marketplace pertukaran skill antar mahasiswa dengan sistem freemium (Free/Pro).
 
 ---
 
@@ -22,6 +22,13 @@ CREATE TABLE users (
     prodi VARCHAR(255) NULL,
     semester TINYINT UNSIGNED NULL,
     whatsapp_number VARCHAR(255) NULL,
+    avatar VARCHAR(255) NULL,
+    plan ENUM('free', 'pro') DEFAULT 'free',
+    swap_quota INT DEFAULT 5,
+    quota_reset_at TIMESTAMP NULL,
+    is_pro BOOLEAN DEFAULT FALSE,
+    midtrans_customer_id VARCHAR(255) NULL,
+    midtrans_subscription_id VARCHAR(255) NULL,
     remember_token VARCHAR(100) NULL,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL
@@ -45,10 +52,6 @@ CREATE TABLE skills (
 );
 ```
 
-**Indexes:**
-- PRIMARY KEY (`id`)
-- UNIQUE KEY `skills_skill_name_unique` (`skill_name`)
-
 ---
 
 ### 3. user_skills (Pivot Table)
@@ -65,11 +68,6 @@ CREATE TABLE user_skills (
     FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE
 );
 ```
-
-**Indexes:**
-- PRIMARY KEY (`id`)
-- FOREIGN KEY `user_skills_user_id_foreign` (`user_id`) → `users(id)`
-- FOREIGN KEY `user_skills_skill_id_foreign` (`skill_id`) → `skills(id)`
 
 ---
 
@@ -93,13 +91,6 @@ CREATE TABLE swaps (
 );
 ```
 
-**Indexes:**
-- PRIMARY KEY (`id`)
-- FOREIGN KEY `swaps_sender_id_foreign` (`sender_id`) → `users(id)`
-- FOREIGN KEY `swaps_receiver_id_foreign` (`receiver_id`) → `users(id)`
-- FOREIGN KEY `swaps_offered_skill_id_foreign` (`offered_skill_id`) → `skills(id)`
-- FOREIGN KEY `swaps_requested_skill_id_foreign` (`requested_skill_id`) → `skills(id)`
-
 ---
 
 ### 5. reviews
@@ -118,12 +109,6 @@ CREATE TABLE reviews (
     FOREIGN KEY (reviewee_id) REFERENCES users(id) ON DELETE CASCADE
 );
 ```
-
-**Indexes:**
-- PRIMARY KEY (`id`)
-- FOREIGN KEY `reviews_swap_id_foreign` (`swap_id`) → `swaps(id)`
-- FOREIGN KEY `reviews_reviewer_id_foreign` (`reviewer_id`) → `users(id)`
-- FOREIGN KEY `reviews_reviewee_id_foreign` (`reviewee_id`) → `users(id)`
 
 ---
 
@@ -147,17 +132,36 @@ CREATE TABLE messages (
 );
 ```
 
+---
+
+### 7. transactions (NEW - Midtrans Payment History)
+```sql
+CREATE TABLE transactions (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    order_id VARCHAR(255) UNIQUE NOT NULL,
+    midtrans_transaction_id VARCHAR(255) NULL,
+    midtrans_subscription_id VARCHAR(255) NULL,
+    amount INT NOT NULL,
+    status ENUM('pending', 'settlement', 'failed', 'expired', 'cancelled', 'denied') DEFAULT 'pending',
+    plan ENUM('free', 'pro') DEFAULT 'pro',
+    midtrans_response JSON NULL,
+    paid_at TIMESTAMP NULL,
+    expired_at TIMESTAMP NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
 **Indexes:**
 - PRIMARY KEY (`id`)
-- FOREIGN KEY `messages_swap_id_foreign` (`swap_id`) → `swaps(id)`
-- FOREIGN KEY `messages_sender_id_foreign` (`sender_id`) → `users(id)`
-- FOREIGN KEY `messages_receiver_id_foreign` (`receiver_id`) → `users(id)`
-- INDEX `messages_swap_id_created_at_index` (`swap_id`, `created_at`)
-- INDEX `messages_receiver_id_is_read_index` (`receiver_id`, `is_read`)
+- UNIQUE KEY `transactions_order_id_unique` (`order_id`)
+- FOREIGN KEY `transactions_user_id_foreign` (`user_id`) → `users(id)`
 
 ---
 
-### 7. notifications (Laravel default)
+### 8. notifications (Laravel default)
 ```sql
 CREATE TABLE notifications (
     id CHAR(36) PRIMARY KEY,
@@ -171,13 +175,9 @@ CREATE TABLE notifications (
 );
 ```
 
-**Indexes:**
-- PRIMARY KEY (`id`)
-- INDEX `notifications_notifiable_type_notifiable_id_index` (`notifiable_type`, `notifiable_id`)
-
 ---
 
-### 8. System Tables (Laravel defaults)
+### 9. System Tables (Laravel defaults)
 - `cache`, `cache_locks` - Cache driver
 - `jobs`, `job_batches`, `failed_jobs` - Queue worker
 - `password_reset_tokens` - Password reset
@@ -196,6 +196,7 @@ swaps ||--o{ reviews }o--|| users (reviewer)
 swaps ||--o{ reviews }o--|| users (reviewee)
 swaps ||--o{ messages }o--|| users (sender)
 swaps ||--o{ messages }o--|| users (receiver)
+users ||--o{ transactions }o--|| transactions
 users ||--o{ notifications }o--|| users
 ```
 
@@ -211,6 +212,7 @@ users ||--o{ notifications }o--|| users
 | User → Received Swaps | One-to-Many | Swap yang diterima user |
 | Swap → Messages | One-to-Many | Percakapan dalam swap |
 | Swap → Reviews | One-to-Many | Review setelah swap selesai |
+| User → Transactions | One-to-Many | Riwayat pembayaran |
 | User → Notifications | One-to-Many | Notifikasi sistem |
 
 ---
@@ -241,6 +243,22 @@ users ||--o{ notifications }o--|| users
 - `file` - File
 - `system` - Pesan sistem
 
+### transactions.status
+- `pending` - Menunggu pembayaran
+- `settlement` - Berhasil
+- `failed` - Gagal
+- `expired` - Kadaluarsa
+- `cancelled` - Dibatalkan
+- `denied` - Ditolak
+
+### users.plan
+- `free` - Gratis (5 swap/bulan)
+- `pro` - Berbayar (Unlimited)
+
+### transactions.plan
+- `free` - Gratis
+- `pro` - Berbayar (Rp 25.000/bulan)
+
 ---
 
 ## Important Notes
@@ -249,7 +267,13 @@ users ||--o{ notifications }o--|| users
 2. **Matching**: Engine mencocokkan `user_skills` type `seek` dengan type `offer` user lain
 3. **Chat**: Bisa diakses jika swap status `pending`, `accepted`, atau `completed`
 4. **Review**: Hanya bisa diberikan setelah swap status `completed`
-5. **Soft Deletes**: Tabel utama tidak menggunakan soft deletes (hapus permanen)
+5. **Swap Quota**: 
+   - Free: 5 swap/bulan, reset otomatis per 30 hari sejak registrasi
+   - Pro: Unlimited
+   - Kuota berkurang saat request dikirim
+   - Jika request ditolak/dibatalkan → kuota dikembalikan (+1)
+6. **Soft Deletes**: Tabel utama TIDAK menggunakan soft deletes (hapus permanen)
+6. **Subscription**: Midtrans recurring billing, webhook sinkronisasi status otomatis
 
 ---
 
@@ -261,12 +285,15 @@ users ||--o{ notifications }o--|| users
 | `2026_06_28_111915_create_skills_table.php` | Tabel skills |
 | `2026_06_28_111916_create_user_skills_table.php` | Tabel user_skills |
 | `2026_06_28_111917_create_swaps_table.php` | Tabel swaps (status: pending, accepted, rejected) |
-| `2026_07_04_061329_add_completed_status_to_swaps_table.php` | **Add 'completed' ke enum status** |
 | `2026_06_28_111918_create_reviews_table.php` | Tabel reviews |
 | `2026_07_01_070921_create_messages_table.php` | Tabel messages |
-| `2026_06_28_123630_add_profile_fields_to_users_table.php` | Tambah kolom profil ke users |
+| `2026_07_04_061329_add_completed_status_to_swaps_table.php` | **Add 'completed' ke enum status** |
 | `2026_07_01_024132_add_completed_at_to_swaps_table.php` | Tambah completed_at ke swaps |
+| `2026_07_11_070016_add_avatar_to_users_table.php` | **Add avatar ke users** |
+| `2026_07_18_122448_add_subscription_fields_to_users_table.php` | **Add subscription fields ke users** |
+| `2026_07_18_122510_create_transactions_table.php` | **Tabel transactions untuk payment history** |
+| `2026_07_01_013934_create_notifications_table.php` | Tabel notifications |
 
 ---
 
-*Generated: 2026-07-04*
+*Generated: 2026-07-19*

@@ -1,6 +1,6 @@
-# KolaboKampus - Roadmap Singkat (Hingga 20 Juli 2026)
+# KolaboKampus - Roadmap Singkat 
 
-*Project Timeline: ~2 minggu tersisa*
+
 
 ---
 
@@ -9,6 +9,7 @@
 ---
 
 ## ✅ Sudah Selesai (MVP Core)
+
 - User Auth & Profile (prodi, semester, WA)
 - Skill Offer/Seek + Proficiency Level
 - Swap Request (Pending/Accepted/Rejected/Completed)
@@ -17,48 +18,54 @@
 - Notifikasi
 - Dashboard Search/Filter
 - My Swaps dengan link ke profil
+- **Email Verification wajib sebelum swap** ✅
+- **Avatar Upload** ✅
+- **Swap Quota System** (5/bulan free, unlimited Pro, refund on reject) ✅
+- **Midtrans Subscription Integration** (Code done, sandbox issues) ⚠️
+- **Delete Account** (Button ada di edit profil) ✅
+- **Seeder Data Demo** ✅
 
 ---
 
-## 📅 Sprint 1 (4-10 Juli): Bug Fix & UX Polish
+## 📅 Sprint 1 : Bug Fix & UX Polish
 
 | Task | Status | Estimasi |
 |------|--------|----------|
 | Fix duplikasi bubble chat (sudah fix polling) | ✅ Done | - |
 | Fix preview chat terakhir di `/chat` | ✅ Done | - |
 | Validasi form swap (prevent duplicate request) | ✅ Done | - |
-| Loading state kirim pesan | ⏳ TODO | 2 jam |
-| Empty state yang informatif | ⏳ TODO | 1 jam |
+| Loading state kirim pesan | ✅ Done | - |
+| Empty state yang informatif | ✅ Done | - |
 | Responsive mobile check & fix | ⏳ TODO | 3 jam |
-| Error handling toast/alert konsisten | ⏳ TODO | 2 jam |
-| Unit test critical path (swap, chat, review) | ⏳ TODO | 4 jam |
+| Error handling toast/alert konsisten | ✅ Done | - |
+| Unit test critical path (swap, chat, review) | ✅ Done | - |
 
 ---
 
-## 📅 Sprint 2 (11-17 Juli): Fitur Kecil & Deployment Prep
+## 📅 Sprint 2 : Fitur Kecil & Deployment Prep
 
 | Task | Status | Estimasi |
 |------|--------|----------|
-| **Email verification wajib sebelum swap** | 🔴 Prioritas | 1 hari |
-| **Hapus akun user** (sudah ada route, cek UI) | 🟡 Sedang | 4 jam |
-| **Edit profil skill** (tambah hapus via modal/AJAX) | 🟡 Sedang | 1 hari |
-| **Search skill autocomplete** di dashboard | 🟡 Sedang | 4 jam |
-| **Avatar upload** (opsional, default inisial) | 🟢 Nice to have | 1 hari |
-| **Seeder data demo** untuk presentasi | 🔴 Prioritas | 4 jam |
-| **Deploy ke production** (Laragon/Shared Hosting/VPS) | 🔴 Prioritas | 1 hari |
-| **Dokumentasi user guide** (PDF/Notion) | 🔴 Prioritas | 1 hari |
+| **Email verification wajib sebelum swap** | 🔴 **BELUM AKTIF** | 
+| **Midtrans webhook/callback fix** | 🔴 **BROKEN** (Sandbox 500) | 
+| **Hapus akun user** (UI sudah ada, cek flow) | ✅ Done | 
+| **Edit profil skill AJAX/Modal** | 🟡 Sedang | 
+| **Search skill autocomplete** | 🟡 Sedang | 
+| **Seeder data demo** | ✅ **SUDAH ADA** | 
+| **Deploy ke production** | 🔴 Prioritas | 
+| **Dokumentasi user guide** | 🔴 Prioritas | 
 
 ---
 
-## 📅 Sprint 3 (18-20 Juli): Final Polish & Demo
+## 📅 Sprint 3 : Final Polish & Demo
 
 | Task | Status | Estimasi |
 |------|--------|----------|
-| Bug bash & regression test | 🔴 Prioritas | 1 hari |
-| Performance check (query log, slow queries) | 🟡 Sedang | 4 jam |
-| Backup database & config production | 🔴 Prioritas | 1 jam |
-| Presentasi/demo video recording | 🔴 Prioritas | 4 jam |
-| Handover dokumentasi teknis | 🔴 Prioritas | 2 jam |
+| Bug bash & regression test | 🔴 Prioritas | 
+| Performance check (query log, slow queries) | 🟡 Sedang | 
+| Backup database & config production | 🔴 Prioritas | 
+| Presentasi/demo video recording | 🔴 Prioritas | 
+| Handover dokumentasi teknis | 🔴 Prioritas |
 
 ---
 
@@ -75,7 +82,7 @@
 | Video Call WebRTC | Infra signaling server kompleks |
 | Multi-language (i18n) | Butuh translate semua string |
 | Admin Analytics Dashboard | Butuh role admin & query aggregation |
-| Premium/Subscription | Butuh payment gateway (Midtrans/Xendit) |
+| Premium/Subscription | Butuh payment gateway (Midtrans/Xendit) - **Partial Done** |
 
 ---
 
@@ -84,9 +91,11 @@
 - [ ] Semua bug critical & high fixed
 - [ ] Deploy production accessible via domain/IP
 - [ ] Email verification working
+- [ ] Midtrans subscription working (webhook OK)
 - [ ] User guide dokumentasi selesai
 - [ ] Database backup & restore tested
 - [ ] Demo video recorded (5-10 menit)
+- [ ] Kode push ke GitHub (private repo clean history bersih)
 - [ ] Kode push ke GitHub (private repo clean history bersih)
 
 ---
@@ -103,11 +112,23 @@ Hari, Tanggal
 ---
 
 ## 🔗 Link Penting
+
 - Repo: `github.com/.../SkillSwap`
 - Production: `http://domain-anda.com`
 - Database Schema: `DATABASE_SCHEMA.md`
 - API Routes: `routes/web.php`
+- Midtrans Docs: https://api-docs.midtrans.com/#create-subscription
 
 ---
 
 *Simpan file ini sebagai `ROADMAP_SHORT.md` di root project.*
+
+---
+
+**Status Update (19 Juli 2026):**
+- Midtrans Subscription: Code ✅, Sandbox 500 error (server issue)
+- Email Verification: Belum aktifkan middleware
+- Delete Account: UI ada di edit profil
+- Edit Profil Skill: Masih full page reload
+- Search Skill: Masih `<select>` dropdown
+- Seeder: Sudah ada
