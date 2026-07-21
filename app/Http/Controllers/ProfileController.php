@@ -16,9 +16,11 @@ class ProfileController extends Controller
     public function show(Request $request): View
     {
         $user = $request->user()->load(['offeredSkills', 'soughtSkills', 'reviewsReceived']);
+        $quota = $user->getQuotaInfo();
         
         return view('profile.show', [
             'user' => $user,
+            'quota' => $quota,
         ]);
     }
 

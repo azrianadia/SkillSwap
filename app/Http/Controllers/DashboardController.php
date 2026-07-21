@@ -45,7 +45,8 @@ class DashboardController extends Controller
         $users = $query->paginate(10)->withQueryString();
         $skills = Skill::orderBy('skill_name')->get();
         $unreadNotifications = auth()->user()->unreadNotifications->count();
+        $quota = auth()->user()->getQuotaInfo();
         
-        return view('dashboard.index', compact('users', 'skills', 'unreadNotifications'));
+        return view('dashboard.index', compact('users', 'skills', 'unreadNotifications', 'quota'));
     }
 }

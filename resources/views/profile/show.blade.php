@@ -28,7 +28,11 @@
                         <div class="flex items-center space-x-2">
                             <h2 class="mt-4 text-3xl font-bold text-gray-900">{{ $user->name }}</h2>
                             @if($user->is_pro)
-                                <span class="mt-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm">
+                                <span 
+                                    class="mt-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                                    @click.window="$dispatch('open-modal', 'pro-info')"
+                                    title="Klik untuk melihat detail paket Pro"
+                                >
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                     </svg>
@@ -217,3 +221,65 @@
         </div>
     </div>
 </x-app-layout>
+
+<x-modal name="pro-info" maxWidth="md">
+    <div class="bg-white rounded-lg shadow-lg">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg px-6 py-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                Detail Paket Pro
+            </h3>
+        </div>
+        
+        <div class="p-6">
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold text-blue-900 mb-2">Informasi Akun</h4>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-blue-700">Paket</p>
+                        <p class="font-medium text-blue-900">{{ ucfirst($quota['plan'] ?? 'pro') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-blue-700">Status</p>
+                        <p class="font-medium text-blue-900">{{ $user->isSubscriptionActive() ? 'Aktif' : 'Tidak Aktif' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-blue-700">Swap Limit</p>
+                        <p class="font-medium text-blue-900">{{ $quota['limit'] ?? 'Unlimited' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-blue-700">Sisa Swap</p>
+                        <p class="font-medium text-blue-900">{{ $quota['remaining'] ?? 'Unlimited' }}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-blue-700">Reset Otomatis</p>
+                        <p class="font-medium text-blue-900">{{ $quota['formatted_reset'] ?? 'Tidak tersedia' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="font-semibold text-gray-900 mb-3">Fitur Pro</h4>
+            <ul class="space-y-3 text-sm text-gray-700">
+                @foreach(config('subscription.plans.pro.features') as $feature)
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ $feature }}
+                    </li>
+                @endforeach
+            </ul>
+
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <a href="{{ route('upgrade.show') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                    Kelola Langganan
+                </a>
+            </div>
+        </div>
+    </div>
+</x-modal>

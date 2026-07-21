@@ -8,7 +8,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class SubscriptionController extends Controller
 {
@@ -24,7 +24,7 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $quota = $user->getQuotaInfo();
         
-        return view('subscription.upgrade', compact('quota'));
+        return view('subscription.upgrade', compact('user', 'quota'));
     }
 
     public function upgrade(Request $request)
@@ -69,7 +69,7 @@ class SubscriptionController extends Controller
         }
     }
 
-public function success(Request $request)
+    public function success(Request $request)
     {
         $orderId = $request->query('order_id');
         $transaction = Transaction::where('order_id', $orderId)->first();
@@ -109,9 +109,57 @@ public function success(Request $request)
             } catch (\Exception $e) {
                 Log::error('Midtrans status check failed: ' . $e->getMessage());
             }
-}
+        }
 
         return view('subscription.success', compact('transaction'));
+    }
+
+    public function status(Request $request): View
+    {
+        $user = $request->user();
+        
+        // Redirect free users to the upgrade page
+        if (! $user->is_pro) {
+            return redirect()->route('upgrade.show');
+        }
+        
+        $quota = $user->getQuotaInfo();
+        $transactions = $user->transactions()
+                         ->orderByDesc('created_at')
+                         ->take(5)
+                         ->get();
+        
+        return view('subscription.status', compact('user', 'quota', 'transactions'));
+    }
+
+    public function cancel(Request $request)
+    {
+        $user = $request->user();
+        
+        if (! $user->is_pro || ! $user->midtrans_subscription_id) {
+            return back()->with('error', 'Tidak ada langganan aktif untuk dibatalkan.');
+        }
+        
+        try {
+            // Call Midtrans to cancel subscription
+            $this->midtrans->cancelSubscription($user->midtrans_subscription_id);
+            
+            // Update user immediately (webhook will also handle this)
+            $user->update([
+                'is_pro' => false,
+                'plan' => 'free',
+                'swap_quota' => config('subscription.plans.free.swap_limit'),
+                'quota_reset_at' => now()->addMonth(),
+                'midtrans_subscription_id' => null,
+                'badge' => null,
+                'support_level' => 'normal',
+            ]);
+            
+            return back()->with('success', 'Langganan Pro telah dibatalkan. Anda akan tetap menikmati fitur Pro hingga akhir periode billing saat ini.');
+        } catch (\Exception $e) {
+            Log::error('Cancel subscription failed: ' . $e->getMessage());
+            return back()->with('error', 'Gagal membatalkan langganan. Silakan coba lagi atau hubungi support.');
+        }
     }
 
     public function confirm()
@@ -163,20 +211,6 @@ public function success(Request $request)
             $this->midtrans->handleNotification($payload);
         } catch (\Exception $e) {
             Log::error('Midtrans callback error: ' . $e->getMessage());
-        }
-        
-        return response()->json(['status' => 'ok']);
-    }
-
-    public function subscriptionCallback(Request $request)
-    {
-        $payload = $request->all();
-        Log::info('Midtrans Subscription Callback', $payload);
-        
-        try {
-            $this->midtrans->handleSubscriptionNotification($payload);
-        } catch (\Exception $e) {
-            Log::error('Midtrans subscription callback error: ' . $e->getMessage());
         }
         
         return response()->json(['status' => 'ok']);

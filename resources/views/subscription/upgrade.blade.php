@@ -61,10 +61,27 @@
                         <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{{ session('error') }}</div>
                     @endif
 
+                    @if (session('success'))
+                        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{{ session('success') }}</div>
+                    @endif
+
+                    @if (! $user->is_pro)
                     <a href="{{ route('upgrade.confirm') }}" 
                        class="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition text-center block">
                         <span>Aktifkan Pro - Rp 25.000/bulan</span>
                     </a>
+                @else
+                    <form method="POST" action="{{ route('upgrade.cancel') }}" 
+                          onsubmit="return confirm('Yakin ingin menghentikan langganan Pro? Fitur Pro akan tetap aktif hingga akhir periode billing saat ini.');">
+                        @csrf
+                        <button type="submit" class="w-full py-3 px-6 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
+                            Hentikan Berlangganan
+                        </button>
+                    </form>
+                    <p class="mt-2 text-xs text-gray-500 text-center">
+                        Langganan akan aktif hingga periode berakhir. Tidak ada pembayaran berikutnya.
+                    </p>
+                @endif
 
                     <p class="mt-4 text-xs text-gray-500 text-center">
                         Pembayaran aman via Midtrans (QRIS, Transfer Bank, E-Wallet).

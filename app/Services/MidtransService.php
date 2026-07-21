@@ -270,4 +270,20 @@ public function getTransactionStatus(string $orderId): array
         
         return [];
     }
+
+    public function cancelSubscription(string $subscriptionId): void
+    {
+        $serverKey = config('services.midtrans.server_key');
+        $isProduction = config('services.midtrans.is_production', false);
+        $baseUrl = $isProduction 
+            ? 'https://api.midtrans.com/v2' 
+            : 'https://api.sandbox.midtrans.com/v2';
+        
+        $response = Http::withBasicAuth($serverKey, '')
+            ->post("{$baseUrl}/subscriptions/{$subscriptionId}/disable");
+        
+        if (! $response->successful()) {
+            throw new \Exception('Midtrans cancel subscription failed: ' . $response->body());
+        }
+    }
 }
