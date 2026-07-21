@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Config;
 
-#[Fillable(['name', 'email', 'password', 'prodi', 'semester', 'whatsapp_number', 'avatar', 'plan', 'swap_quota', 'quota_reset_at', 'is_pro', 'midtrans_customer_id', 'midtrans_subscription_id'])]
+#[Fillable(['name', 'email', 'password', 'prodi', 'semester', 'whatsapp_number', 'avatar', 'plan', 'swap_quota', 'quota_reset_at', 'is_pro', 'midtrans_customer_id', 'midtrans_subscription_id', 'badge', 'support_level'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {

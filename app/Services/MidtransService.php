@@ -6,7 +6,7 @@ require_once base_path('vendor/midtrans/midtrans-php/Midtrans.php');
 
 use Midtrans\Config;
 use Midtrans\Snap;
-use Midtrans\CoreApi;
+use Illuminate\Support\Facades\Http;
 use App\Models\User;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
@@ -138,6 +138,8 @@ public function createSubscription(User $user): array
     
     public function handleNotification(array $payload): void
     {
+        Log::info('Midtrans webhook received', $payload);
+        
         $signatureKey = config('services.midtrans.server_key');
         $expectedSignature = hash('sha512', $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . $signatureKey);
 
@@ -227,6 +229,8 @@ public function createSubscription(User $user): array
             'swap_quota' => -1,
             'quota_reset_at' => Carbon::now()->addMonth(),
             'midtrans_customer_id' => $payload['customer_id'] ?? null,
+            'badge' => 'Pro',
+            'support_level' => 'priority',
         ]);
     }
 
@@ -238,6 +242,32 @@ public function createSubscription(User $user): array
             'swap_quota' => config('subscription.plans.free.swap_limit'),
             'quota_reset_at' => now()->addMonth(),
             'midtrans_subscription_id' => null,
+            'badge' => null,
+            'support_level' => 'normal',
         ]);
+    }
+
+public function getTransactionStatus(string $orderId): array
+    {
+        $serverKey = config('services.midtrans.server_key');
+        $isProduction = config('services.midtrans.is_production', false);
+        $baseUrl = $isProduction 
+            ? 'https://api.midtrans.com/v2' 
+            : 'https://api.sandbox.midtrans.com/v2';
+        
+        $response = Http::withBasicAuth($serverKey, '')
+            ->get("{$baseUrl}/{$orderId}/status");
+        
+        if ($response->successful()) {
+            return $response->json();
+        }
+        
+        Log::error('Midtrans status check failed', [
+            'order_id' => $orderId,
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+        
+        return [];
     }
 }

@@ -57,9 +57,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/upgrade/process', [SubscriptionController::class, 'process'])->name('upgrade.process');
     Route::get('/upgrade/success', [SubscriptionController::class, 'success'])->name('upgrade.success');
     
-    // Midtrans Webhooks
-    Route::post('/midtrans/callback', [SubscriptionController::class, 'callback'])->name('midtrans.callback');
-    Route::post('/midtrans/subscription', [SubscriptionController::class, 'subscriptionCallback'])->name('midtrans.subscription');
-});
+        // Midtrans Webhooks are defined outside auth middleware
+    });
+
+// Webhook routes (no auth required)
+Route::post('/midtrans/callback', [SubscriptionController::class, 'callback'])->name('midtrans.callback');
+Route::post('/midtrans/subscription', [SubscriptionController::class, 'subscriptionCallback'])->name('midtrans.subscription');
 
 require __DIR__.'/auth.php';

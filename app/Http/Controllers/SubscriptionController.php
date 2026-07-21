@@ -69,11 +69,48 @@ class SubscriptionController extends Controller
         }
     }
 
-    public function success(Request $request)
+public function success(Request $request)
     {
         $orderId = $request->query('order_id');
         $transaction = Transaction::where('order_id', $orderId)->first();
         
+        // If the transaction is settled, activate Pro for the user
+        if ($transaction && in_array($transaction->status, ['settlement', 'capture'])) {
+            $user = Auth::user();
+            $user->update([
+                'is_pro' => true,
+                'plan' => 'pro',
+                'swap_quota' => -1,
+                'quota_reset_at' => now()->addMonth(),
+                'badge' => 'Pro',
+                'support_level' => 'priority',
+            ]);
+        } elseif ($transaction && $transaction->status !== 'settlement') {
+            // Fallback: query Midtrans for latest status
+            try {
+                $statusData = $this->midtrans->getTransactionStatus($orderId);
+                $status = $statusData['transaction_status'] ?? null;
+                if (in_array($status, ['settlement', 'capture'])) {
+                    $transaction->update([
+                        'status' => 'settlement',
+                        'midtrans_response' => $statusData,
+                        'paid_at' => now(),
+                    ]);
+                    $user = Auth::user();
+                    $user->update([
+                        'is_pro' => true,
+                        'plan' => 'pro',
+                        'swap_quota' => -1,
+                        'quota_reset_at' => now()->addMonth(),
+                        'badge' => 'Pro',
+                        'support_level' => 'priority',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Midtrans status check failed: ' . $e->getMessage());
+            }
+}
+
         return view('subscription.success', compact('transaction'));
     }
 
